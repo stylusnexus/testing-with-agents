@@ -317,7 +317,207 @@ description: Run build + test + lint before claiming done
         </div>
       </section>
 
-      <!-- ═══ Sections 7-12 will be added below ═══ -->
+      <!-- Section 7 -->
+      <section id="ux-review">
+        <h2><span class="section-num">7</span>AI-Powered UX Review</h2>
+
+        <p>Manual UI review is slow, inconsistent, and the first thing skipped when you're in a hurry. But visual bugs are real bugs. The pattern: take a screenshot, feed it to a vision-capable model, get structured feedback.</p>
+
+        <p>When Playwright is already in your harness, you can use the <code>--fresh</code> flag to run visual tests (which capture screenshots), then feed those screenshots to a vision model for analysis. No manual screenshot step.</p>
+
+        <p>The feedback loop: E2E tests capture snapshots → UX review skill analyzes them → structured issues come back (rated <strong>Good</strong> / <strong>Needs Attention</strong> / <strong>Needs Fix</strong>).</p>
+
+        <div class="code-header"><span>terminal</span><button class="copy-btn">Copy</button></div>
+<pre><code>/ux-review                # Review existing snapshots
+/ux-review --fresh        # Run visual tests first, then review</code></pre>
+
+        <p>What it catches: spacing inconsistencies, alignment issues, contrast problems, touch target sizes, heading hierarchy.</p>
+
+        <p>What it doesn't catch: business logic errors, complex interaction flows, subjective design preferences.</p>
+
+        <div class="callout tip">
+          <strong>Accessibility Integration</strong>
+          <p>Optional axe-core integration adds automated WCAG validation alongside the visual review. Install <code>@axe-core/playwright</code> for accessibility scanning.</p>
+        </div>
+
+        <div class="callout">
+          <strong>Model-Agnostic</strong>
+          <p>This works with any vision-capable model — GPT-4o Vision, Claude, Gemini. The skill is tool-agnostic; adapt the analysis step to your preferred model.</p>
+        </div>
+      </section>
+
+      <!-- Section 8 -->
+      <section id="experiment-as-test">
+        <h2><span class="section-num">8</span>Experiment-as-Test</h2>
+
+        <p>Some quality properties can't be expressed as pass/fail assertions. "Is this AI-generated content good?" isn't a boolean. But you can measure it — and you can detect when it gets worse.</p>
+
+        <p>The pattern: write scripts that measure quality metrics (structure validity, output quality scores, success rates, response times), save the measurements as a baseline, then compare future runs against the baseline. If metrics degrade beyond a threshold, fail the build.</p>
+
+        <div class="code-header"><span>scripts/experiment-baseline.ts</span><button class="copy-btn">Copy</button></div>
+<pre><code>// Compare current metrics to saved baseline
+for (const key of ['structureValidity', 'averageQuality', 'successRate']) {
+  const degradation = (baseline[key] - current[key]) / baseline[key];
+  if (degradation &gt; threshold) {
+    console.log(`✗ ${key} degraded by ${(degradation * 100).toFixed(1)}%`);
+    passed = false;
+  }
+}</code></pre>
+
+        <div class="code-header"><span>terminal</span><button class="copy-btn">Copy</button></div>
+<pre><code># Save a baseline from current performance
+npx tsx scripts/experiment-baseline.ts --save
+
+# Compare against baseline (fails if metrics degrade &gt;10%)
+npx tsx scripts/experiment-baseline.ts
+
+# Custom threshold
+npx tsx scripts/experiment-baseline.ts --threshold 0.15</code></pre>
+
+        <p><strong>When to use experiments vs tests:</strong> Traditional tests answer "does this work?" Experiments answer "is this still good?" Use tests for correctness, experiments for quality.</p>
+
+        <div class="callout">
+          <strong>In Practice</strong>
+          <p>The hardest part is setting the right threshold. Too tight (1%) and you get false alarms from normal variance. Too loose (25%) and you miss real regressions. We found 10% works well as a starting point — enough headroom for normal variation, tight enough to catch meaningful degradation.</p>
+        </div>
+      </section>
+
+      <!-- Section 9 -->
+      <section id="ci-integration">
+        <h2><span class="section-num">9</span>CI Integration</h2>
+
+        <p>Running everything on every PR is slow, expensive, and burns through your GitHub Actions minutes. The solution: tiered test execution with smart triggers — but start with everything manual.</p>
+
+        <p><strong>All workflows in the starter repo default to <code>workflow_dispatch</code> (manual trigger only).</strong> This keeps CI costs at zero until you're ready.</p>
+
+        <h3>Minimal (Solo Devs)</h3>
+        <p>Keep everything manual. Run tests locally with <code>/test-e2e</code> or <code>npm test</code>. Trigger workflows from the GitHub UI when you want a CI check before merging. Cost: ~0 min/month.</p>
+
+        <h3>Mid-Tier (Small Teams, Recommended)</h3>
+        <p>Enable smoke tests on PRs. Keep regression and visual tests manual or nightly.</p>
+
+        <div class="code-header"><span>.github/workflows/test-smoke.yml</span><button class="copy-btn">Copy</button></div>
+<pre><code>on:
+  workflow_dispatch:
+  pull_request:       # &lt;-- uncomment this
+    branches: [main]</code></pre>
+
+        <p>Cost: ~50-200 min/month.</p>
+
+        <h3>Maximal (Enterprise)</h3>
+        <p>Enable all automatic triggers — smoke on every PR, visual on UI changes (path-filtered), nightly regression. Cost: ~500-2000 min/month.</p>
+
+        <div class="callout warning">
+          <strong>GitHub Actions Minutes</strong>
+          <p>Free tier gets 2,000 min/month. Each E2E run uses 2-10 minutes depending on your app's build time and test count. Monitor your usage at Settings → Billing → Actions. Switching all three workflows to automatic can burn 500+ min/month on active repos.</p>
+        </div>
+
+        <p>The <code>/test-e2e</code> skill is the local equivalent of your CI pipeline:</p>
+
+        <div class="code-header"><span>terminal</span><button class="copy-btn">Copy</button></div>
+<pre><code>/test-e2e              # Run smoke tests locally
+/test-e2e --regression # Full suite
+/test-e2e --visual     # Screenshot comparison</code></pre>
+
+        <div class="callout tip">
+          <strong>Start Small</strong>
+          <p>Start with Minimal. Move to Mid-Tier when a bug ships that local testing would have caught. You'll know when you need Maximal.</p>
+        </div>
+      </section>
+
+      <!-- Section 10 -->
+      <section id="full-harness">
+        <h2><span class="section-num">10</span>The Full Harness</h2>
+
+        <p>You've read the individual sections. Here's how they compose into a system.</p>
+
+        <p>Mock fixtures feed your E2E tests → E2E tests capture screenshots → Visual verification compares against baselines → UX review analyzes screenshots with AI → Experiment scripts measure quality → CI workflows run the right tests at the right time → The verify loop ties it all together before commits.</p>
+
+        <div class="file-tree">
+<pre>test-starter/
+├── CLAUDE.md                          ← Setup guide for AI agents
+├── .claude/
+│   ├── agents/test-reviewer.md        ← §9 Test coverage review
+│   ├── hooks/pre-commit-verify.sh     ← §6 Verify loop (git hook)
+│   └── skills/
+│       ├── verify.md                  ← §6 Pre-completion checks
+│       ├── ux-review.md               ← §7 Screenshot analysis
+│       └── test-e2e.md                ← §9 E2E runner
+├── .github/workflows/
+│   ├── test-smoke.yml                 ← §9 PR smoke tests
+│   ├── test-regression.yml            ← §9 Nightly regression
+│   └── test-visual.yml                ← §9 Visual comparison
+├── e2e/
+│   ├── auth.setup.ts                  ← §4 Auth bypass
+│   ├── verify-quick.spec.ts           ← §6 Quick sanity check
+│   ├── fixtures/ai-responses/         ← §3 Mock AI data
+│   ├── mocks/
+│   │   ├── ai-generation-mock.ts      ← §3 Route interception
+│   │   └── profile-mock.ts            ← §4 Tier mocking
+│   ├── helpers/                       ← Shared utilities
+│   ├── pages/                         ← Page objects
+│   ├── baselines/                     ← §5 Visual baselines
+│   └── suite/
+│       ├── smoke.spec.ts              ← @smoke tests
+│       ├── generation.spec.ts         ← @regression + mocks
+│       ├── tier-access.spec.ts        ← @regression + tiers
+│       └── visual.spec.ts             ← @visual screenshots
+└── scripts/
+    ├── verify.sh                      ← §6 Verify loop script
+    └── experiment-baseline.ts         ← §8 Quality regression</pre>
+        </div>
+      </section>
+
+      <!-- Section 11 -->
+      <section id="failures">
+        <h2><span class="section-num">11</span>What Didn't Work</h2>
+
+        <p>Not everything worked. Here's what we tried that failed, and what we do instead.</p>
+
+        <h3>Tests coupled to AI output format</h3>
+        <p>We wrote assertions that checked exact field values in AI-generated content. Every time we tweaked a prompt, tests broke — not because the output was wrong, but because it was differently right. Fix: assert structure and type, not exact content. Check that a title field exists and is a non-empty string, not that it equals "Grimgar the Wise."</p>
+
+        <h3>Visual baselines that drifted</h3>
+        <p>We added visual regression baselines for every page early in development, when the UI was changing weekly. We spent more time updating baselines than catching regressions. Fix: add visual baselines after the UI stabilizes. During active development, use manual screenshot review instead.</p>
+
+        <h3>Over-mocking that hid real bugs</h3>
+        <p>We mocked everything — AI calls, auth, database queries. Tests passed in CI but the app was broken because our mocks didn't match real API behavior. A database migration changed a field name, but the mock still returned the old field. Fix: keep mocks minimal. Mock AI calls (expensive, slow, non-deterministic) but use real auth and real database in integration tests.</p>
+
+        <h3>Agents that gamed the verify loop</h3>
+        <p>Our AI agent learned to run the build command, see it succeed, and report "all checks passed" — while ignoring compiler warnings and skipping the test step. The verify script ran, but the agent only checked the exit code of the first command. Fix: the verify script must run ALL checks and exit non-zero if ANY fail. Use <code>set -euo pipefail</code> in bash.</p>
+
+        <h3>Experiment baselines that were too tight</h3>
+        <p>We set a 2% degradation threshold on our quality experiments. Normal run-to-run variance was 3-5%. Every CI run flagged a "regression" that was just noise. We spent hours investigating false alarms. Fix: start with 10% threshold and tighten only after you understand your variance. Run the experiment 20 times to establish a realistic baseline.</p>
+      </section>
+
+      <!-- Section 12 -->
+      <section id="getting-started">
+        <h2><span class="section-num">12</span>Getting Started</h2>
+
+        <p>Ready to try it? Fork the starter and adapt it to your project.</p>
+
+        <div class="code-header"><span>terminal</span><button class="copy-btn">Copy</button></div>
+<pre><code># 1. Fork and clone
+git clone https://github.com/stylusnexus/test-starter.git
+cd test-starter
+
+# 2. Install
+npm install &amp;&amp; npx playwright install chromium
+
+# 3. Run
+npm test</code></pre>
+
+        <p>The starter includes everything from this guide — mock fixtures, auth bypass, visual tests, verify loop, experiment scripts, CI workflows, and Claude Code skills. See the README for how to adapt each component to your stack.</p>
+
+        <div class="callout tip">
+          <strong>The Development Workflow</strong>
+          <p>These tests protect a development workflow. For the other half — agents, skills, hooks, and memory systems — see <a href="https://stylusnexus.github.io/shipping-with-agents/">Shipping with Agents</a>.</p>
+        </div>
+      </section>
+
+      <footer class="site-footer">
+        <p>Built by <a href="https://github.com/stylusnexus">Stylus Nexus</a> &middot; Companion to <a href="https://stylusnexus.github.io/shipping-with-agents/">Shipping with Agents</a></p>
+      </footer>
 
     </main>
 
