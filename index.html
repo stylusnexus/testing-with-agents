@@ -509,6 +509,62 @@ npm test</code></pre>
 
         <p>The starter includes everything from this guide — mock fixtures, auth bypass, visual tests, verify loop, experiment scripts, CI workflows, and Claude Code skills. See the README for how to adapt each component to your stack.</p>
 
+        <h3>Putting It All Together</h3>
+
+        <p>The test-starter is designed to merge into your existing project alongside the <a href="https://github.com/stylusnexus/agent-starter">agent-starter</a> from Shipping with Agents. You don't need separate repos. Here's what a fully equipped project looks like with both development and testing infrastructure:</p>
+
+        <div class="file-tree">
+<pre><code>your-project/
+├── CLAUDE.md                          <span class="comment">← project brain (rules, commands, gotchas)</span>
+├── playwright.config.ts               <span class="comment">← from test-starter</span>
+├── package.json                       <span class="comment">← your app + @playwright/test in devDeps</span>
+│
+├── .claude/
+│   ├── guidances/                     <span class="comment">← from agent-starter (domain knowledge)</span>
+│   │   ├── ai-safety.md
+│   │   ├── database-patterns.md
+│   │   └── testing-strategy.md
+│   ├── agents/                        <span class="comment">← both starters</span>
+│   │   ├── backend-engineer.md        <span class="comment">← from agent-starter</span>
+│   │   ├── ui-engineer.md             <span class="comment">← from agent-starter</span>
+│   │   └── <span class="highlight">test-reviewer.md</span>           <span class="comment">← from test-starter</span>
+│   ├── agent-memory/                  <span class="comment">← from agent-starter</span>
+│   │   ├── backend-engineer/MEMORY.md
+│   │   └── ui-engineer/MEMORY.md
+│   ├── skills/                        <span class="comment">← both starters</span>
+│   │   ├── brainstorm.md, tdd.md, ... <span class="comment">← from agent-starter</span>
+│   │   ├── <span class="highlight">verify.md</span>                 <span class="comment">← from test-starter</span>
+│   │   ├── <span class="highlight">ux-review.md</span>              <span class="comment">← from test-starter</span>
+│   │   └── <span class="highlight">test-e2e.md</span>               <span class="comment">← from test-starter</span>
+│   ├── hooks/                         <span class="comment">← both starters</span>
+│   │   ├── domain-context-loader.sh   <span class="comment">← from agent-starter</span>
+│   │   ├── require-tests.sh           <span class="comment">← from agent-starter</span>
+│   │   ├── <span class="highlight">pre-commit-verify.sh</span>      <span class="comment">← from test-starter</span>
+│   │   └── <span class="highlight">check-test-coverage.sh</span>    <span class="comment">← from test-starter</span>
+│   └── settings.json                  <span class="comment">← merged hooks from both</span>
+│
+├── <span class="highlight">e2e/</span>                               <span class="comment">← from test-starter</span>
+│   ├── auth.setup.ts
+│   ├── verify-quick.spec.ts
+│   ├── mocks/ (ai-generation-mock.ts, profile-mock.ts)
+│   ├── fixtures/ai-responses/
+│   ├── suite/ (smoke, generation, tier-access, visual)
+│   ├── helpers/, pages/, baselines/
+│
+├── <span class="highlight">scripts/</span>                           <span class="comment">← from test-starter</span>
+│   ├── verify.sh
+│   └── experiment-baseline.ts
+│
+├── <span class="highlight">.github/workflows/</span>                 <span class="comment">← from test-starter</span>
+│   ├── test-smoke.yml
+│   ├── test-regression.yml
+│   └── test-visual.yml
+│
+└── src/                               <span class="comment">← your app code</span></code></pre>
+        </div>
+
+        <p>Items in <span style="color: var(--accent-light);">gold</span> come from this guide's test-starter. Everything else comes from the agent-starter or your own project. To merge: copy the testing files into your project, combine the <code>.claude/</code> directories, merge the <code>settings.json</code> hook arrays, and add <code>@playwright/test</code> to devDependencies.</p>
+
         <div class="callout tip">
           <strong>The Development Workflow</strong>
           <p>These tests protect a development workflow. For the other half — agents, skills, hooks, and memory systems — see <a href="https://stylusnexus.github.io/shipping-with-agents/">Shipping with Agents</a>.</p>
