@@ -434,37 +434,37 @@ npx tsx scripts/experiment-baseline.ts --threshold 0.15</code></pre>
         <p>Mock fixtures feed your E2E tests → E2E tests capture screenshots → Visual verification compares against baselines → UX review analyzes screenshots with AI → Experiment scripts measure quality → CI workflows run the right tests at the right time → The verify loop ties it all together before commits.</p>
 
         <div class="file-tree">
-test-starter/<br>
-├── CLAUDE.md &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="comment">← Setup guide for AI agents</span><br>
-├── .claude/<br>
-│ &nbsp;&nbsp;├── agents/test-reviewer.md &nbsp;&nbsp;&nbsp;&nbsp;<span class="comment">← §9 Test coverage review</span><br>
-│ &nbsp;&nbsp;├── hooks/pre-commit-verify.sh &nbsp;<span class="comment">← §6 Verify loop (git hook)</span><br>
-│ &nbsp;&nbsp;└── skills/<br>
-│ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;├── verify.md &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="comment">← §6 Pre-completion checks</span><br>
-│ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;├── ux-review.md &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="comment">← §7 Screenshot analysis</span><br>
-│ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;└── test-e2e.md &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="comment">← §9 E2E runner</span><br>
-├── .github/workflows/<br>
-│ &nbsp;&nbsp;├── test-smoke.yml &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="comment">← §9 PR smoke tests</span><br>
-│ &nbsp;&nbsp;├── test-regression.yml &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="comment">← §9 Nightly regression</span><br>
-│ &nbsp;&nbsp;└── test-visual.yml &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="comment">← §9 Visual comparison</span><br>
-├── e2e/<br>
-│ &nbsp;&nbsp;├── auth.setup.ts &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="comment">← §4 Auth bypass</span><br>
-│ &nbsp;&nbsp;├── verify-quick.spec.ts &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="comment">← §6 Quick sanity check</span><br>
-│ &nbsp;&nbsp;├── fixtures/ai-responses/ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="comment">← §3 Mock AI data</span><br>
-│ &nbsp;&nbsp;├── mocks/<br>
-│ &nbsp;&nbsp;│ &nbsp;&nbsp;├── <span class="highlight">ai-generation-mock.ts</span> &nbsp;<span class="comment">← §3 Route interception</span><br>
-│ &nbsp;&nbsp;│ &nbsp;&nbsp;└── <span class="highlight">profile-mock.ts</span> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="comment">← §4 Tier mocking</span><br>
-│ &nbsp;&nbsp;├── helpers/ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="comment">← Shared utilities</span><br>
-│ &nbsp;&nbsp;├── pages/ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="comment">← Page objects</span><br>
-│ &nbsp;&nbsp;├── baselines/ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="comment">← §5 Visual baselines</span><br>
-│ &nbsp;&nbsp;└── suite/<br>
-│ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;├── smoke.spec.ts &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="comment">← @smoke tests</span><br>
-│ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;├── generation.spec.ts &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="comment">← @regression + mocks</span><br>
-│ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;├── tier-access.spec.ts &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="comment">← @regression + tiers</span><br>
-│ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;└── visual.spec.ts &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="comment">← @visual screenshots</span><br>
-└── scripts/<br>
-&nbsp;&nbsp;&nbsp;&nbsp;├── verify.sh &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="comment">← §6 Verify loop script</span><br>
-&nbsp;&nbsp;&nbsp;&nbsp;└── experiment-baseline.ts &nbsp;&nbsp;&nbsp;<span class="comment">← §8 Quality regression</span>
+<pre><code>test-starter/
+├── CLAUDE.md                          <span class="comment">← Setup guide for AI agents</span>
+├── .claude/
+│   ├── agents/test-reviewer.md        <span class="comment">← §9 Test coverage review</span>
+│   ├── hooks/pre-commit-verify.sh     <span class="comment">← §6 Verify loop (git hook)</span>
+│   └── skills/
+│       ├── verify.md                  <span class="comment">← §6 Pre-completion checks</span>
+│       ├── ux-review.md               <span class="comment">← §7 Screenshot analysis</span>
+│       └── test-e2e.md                <span class="comment">← §9 E2E runner</span>
+├── .github/workflows/
+│   ├── test-smoke.yml                 <span class="comment">← §9 PR smoke tests</span>
+│   ├── test-regression.yml            <span class="comment">← §9 Nightly regression</span>
+│   └── test-visual.yml                <span class="comment">← §9 Visual comparison</span>
+├── e2e/
+│   ├── auth.setup.ts                  <span class="comment">← §4 Auth bypass</span>
+│   ├── verify-quick.spec.ts           <span class="comment">← §6 Quick sanity check</span>
+│   ├── fixtures/ai-responses/         <span class="comment">← §3 Mock AI data</span>
+│   ├── mocks/
+│   │   ├── <span class="highlight">ai-generation-mock.ts</span>      <span class="comment">← §3 Route interception</span>
+│   │   └── <span class="highlight">profile-mock.ts</span>            <span class="comment">← §4 Tier mocking</span>
+│   ├── helpers/                       <span class="comment">← Shared utilities</span>
+│   ├── pages/                         <span class="comment">← Page objects</span>
+│   ├── baselines/                     <span class="comment">← §5 Visual baselines</span>
+│   └── suite/
+│       ├── smoke.spec.ts              <span class="comment">← @smoke tests</span>
+│       ├── generation.spec.ts         <span class="comment">← @regression + mocks</span>
+│       ├── tier-access.spec.ts        <span class="comment">← @regression + tiers</span>
+│       └── visual.spec.ts             <span class="comment">← @visual screenshots</span>
+└── scripts/
+    ├── verify.sh                      <span class="comment">← §6 Verify loop script</span>
+    └── experiment-baseline.ts         <span class="comment">← §8 Quality regression</span></code></pre>
         </div>
       </section>
 

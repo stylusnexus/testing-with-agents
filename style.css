@@ -232,6 +232,19 @@ pre code {
 .file-tree details { padding-left: 1.25rem; }
 .file-tree .highlight { color: var(--accent-light); }
 .file-tree .comment { color: var(--text-muted); font-style: italic; }
+.file-tree pre {
+  background: inherit;
+  border: none;
+  padding: 0;
+  margin: 0;
+  color: var(--text-secondary);
+  max-width: none;
+  overflow-x: visible;
+}
+.file-tree pre code {
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+}
 
 /* ─── 8. Hero ────────────────────────────────────────────────────────────────  */
 .hero {
