@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Testing with Agents: Testing Patterns from a Production Team</title>
+  <meta name="description" content="AI mock fixtures, visual verification, experiment-as-test, and CI integration. Testing patterns from a team that ships with AI agents every day." />
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <div class="scroll-progress"></div>
+  <button class="mobile-toggle" aria-label="Toggle navigation">&#9776;</button>
+
+  <div class="page-layout">
+
+    <!-- ─── Sidebar ──────────────────────────────────────────────────────────── -->
+    <aside class="sidebar">
+      <img src="logo.png" alt="Stylus Nexus" class="sidebar-logo" />
+      <div class="sidebar-brand">Testing with Agents</div>
+      <div class="sidebar-sub">by Stylus Nexus</div>
+
+      <nav>
+        <ul class="sidebar-nav">
+          <li><a href="#why">1. Why This Exists</a></li>
+          <li><a href="#pyramid">2. The Testing Pyramid</a></li>
+          <li><a href="#ai-mocks">3. AI Mock Fixtures</a></li>
+          <li><a href="#auth-mocking">4. Auth &amp; Profile Mocking</a></li>
+          <li><a href="#visual-verification">5. Visual Verification</a></li>
+          <li><a href="#verify-loop">6. The Verify Loop</a></li>
+          <li><a href="#ux-review">7. AI-Powered UX Review</a></li>
+          <li><a href="#experiment-as-test">8. Experiment-as-Test</a></li>
+          <li><a href="#ci-integration">9. CI Integration</a></li>
+          <li><a href="#full-harness">10. The Full Harness</a></li>
+          <li><a href="#failures">11. What Didn't Work</a></li>
+          <li><a href="#getting-started">12. Getting Started</a></li>
+        </ul>
+      </nav>
+
+      <div class="sidebar-progress">Section 1 of 12</div>
+    </aside>
+
+    <!-- ─── Main Content ───────────────────────────────────────────────────────── -->
+    <main class="main-content">
+
+      <!-- Hero -->
+      <div class="hero">
+        <div class="hero-badge">From a Production Team</div>
+        <h1>Testing with <span class="accent">Agents</span></h1>
+        <p class="hero-subtitle">
+          AI mock fixtures, visual verification, experiment-as-test, and CI integration. Testing patterns from a team that ships with AI agents every day.
+        </p>
+      </div>
+
+      <p style="text-align: center; font-size: 0.9rem; color: var(--text-muted); margin-bottom: 3rem;">Want to skip straight to a working setup? Fork the <a href="https://github.com/stylusnexus/test-starter">starter template</a>.</p>
+
+      <!-- Cross-link callout -->
+      <div class="callout tip">
+        <strong>Companion Guide</strong>
+        <p>This guide covers testing. For the development workflow these tests protect — agents, skills, hooks, and memory systems — see <a href="https://stylusnexus.github.io/shipping-with-agents/">Shipping with Agents</a>.</p>
+      </div>
+
+      <!-- Section 1 -->
+      <section id="why">
+        <h2><span class="section-num">1</span>Why This Exists</h2>
+
+        <p>There's no shortage of "AI testing" content. Most of it is about using AI to write tests — generating unit tests, suggesting edge cases, autocompleting assertions. That's useful, but it's not what this guide is about.</p>
+
+        <p>This guide is about the opposite problem: how do you test the work AI agents produce? And how do you use agents themselves as testers?</p>
+
+        <p><strong>AI-generated code passes type checks but breaks visually.</strong> Your agent can write a component that compiles, passes lint, and even passes unit tests — but renders with overlapping elements, broken spacing, or invisible text. Type safety doesn't guarantee visual correctness.</p>
+
+        <p><strong>Live AI calls make tests expensive and flaky.</strong> A test that calls a real AI API takes 3-5 seconds, costs money per call, and returns different output every time. Your test suite becomes slow, expensive, and non-deterministic — the three things tests shouldn't be.</p>
+
+        <p><strong>Agents will claim "done" without verifying.</strong> AI coding assistants are optimistic by default. They'll report a task as complete without running the build, checking the UI, or verifying edge cases. The verify loop — running build, test, and lint before claiming done — is the single highest-ROI pattern we've found.</p>
+
+        <p>We've been shipping a production SaaS with AI agents for months. These patterns come from real failures, real fixes, and real workflow changes. If you're building with AI coding assistants and your tests aren't keeping up, this is for you.</p>
+      </section>
+
+      <!-- Section 2 -->
+      <section id="pyramid">
+        <h2><span class="section-num">2</span>The Testing Pyramid, Revisited</h2>
+
+        <p>The classic testing pyramid — many unit tests, fewer integration tests, minimal E2E — still holds. But AI agents add new layers above the pyramid that traditional testing guides don't cover.</p>
+
+<pre><code>┌─────────────────────┐
+│   AI-Powered Review  │  ← Agent analyzes screenshots
+├─────────────────────┤
+│ Visual Verification  │  ← Screenshot comparison
+├─────────────────────┤
+│     E2E Tests        │  ← User journey simulation
+├─────────────────────┤
+│  Integration Tests   │  ← API and service tests
+├─────────────────────┤
+│    Unit Tests        │  ← Function-level tests
+└─────────────────────┘</code></pre>
+
+        <p>Agents change two things about testing. First, they change <strong>what</strong> you test — AI output quality isn't just "does this function return the right value?" It's "is this generated content actually good?" Traditional assertions struggle with that. Second, they change <strong>how</strong> you test — agents themselves can be testers, analyzing screenshots, reviewing code, and catching issues that scripted tests miss.</p>
+
+        <p>The rest of this guide walks through each layer above the classic pyramid, plus the infrastructure that makes it all work.</p>
+      </section>
+
+      <!-- Section 3 -->
+      <section id="ai-mocks">
+        <h2><span class="section-num">3</span>AI Mock Fixtures</h2>
+
+        <p>The first thing you learn when writing E2E tests for an AI-powered app: real AI calls destroy your test suite.</p>
+
+        <p>A single AI generation call takes 3-5 seconds, costs money, and returns different output every time. Multiply that by 20 tests and your suite takes two minutes, costs real money per run, and fails randomly because the AI gave a slightly different response. The fix is straightforward: mock the AI at the network level.</p>
+
+        <p>The pattern: intercept API routes in Playwright, serve pre-recorded JSON fixtures instead of hitting the real API. Tests run in milliseconds, cost nothing, and produce deterministic results.</p>
+
+        <div class="code-header"><span>e2e/mocks/ai-generation-mock.ts</span><button class="copy-btn">Copy</button></div>
+<pre><code>// e2e/mocks/ai-generation-mock.ts
+
+export async function mockAIRoute(
+  page: Page,
+  routePattern: string,
+  fixtureFile: string,
+): Promise&lt;void&gt; {
+  const fixture = loadFixture(fixtureFile);
+
+  await page.route(routePattern, async (route) =&gt; {
+    if (route.request().method() !== 'POST') {
+      await route.continue();
+      return;
+    }
+
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: fixture,
+    });
+  });
+}</code></pre>
+
+        <div class="code-header"><span>e2e/example.spec.ts</span><button class="copy-btn">Copy</button></div>
+<pre><code>test('generates content with mocked AI', async ({ page }) => {
+  await mockAIRoute(page, '**/api/generate', 'sample-generation.json');
+  await page.goto('/generate');
+  // ... test runs instantly with deterministic data
+});</code></pre>
+
+        <div class="callout tip">
+          <strong>When to mock vs. use real AI</strong>
+          <p>In CI, always mock. Real AI calls in CI are slow, expensive, and introduce flakiness. Locally, it's your choice — real calls during development can help you spot prompt regressions, but mocks keep your feedback loop fast.</p>
+        </div>
+
+        <div class="callout">
+          <strong>In Practice</strong>
+          <p>Real projects end up with dozens of fixture files. Keep them organized by feature (<code>npc-generation.json</code>, <code>chat-response.json</code>) and update them when your API response format changes. Stale fixtures are the #1 cause of mock-related test failures.</p>
+        </div>
+      </section>
+
+      <!-- Section 4 -->
+      <section id="auth-mocking">
+        <h2><span class="section-num">4</span>Auth &amp; Profile Mocking</h2>
+
+        <p>If your app has subscription tiers, you need to test what each tier sees. But creating real paid accounts for testing is expensive and fragile. The solution: mock the profile layer.</p>
+
+        <p>Two patterns work together: an auth bypass that skips real authentication in test environments, and a profile mock that impersonates any subscription tier.</p>
+
+        <div class="code-header"><span>e2e/auth.setup.ts</span><button class="copy-btn">Copy</button></div>
+<pre><code>// e2e/auth.setup.ts
+
+setup('authenticate', async ({ page }) => {
+  if (process.env.E2E_BYPASS_AUTH === '1') {
+    // Skip real auth — just save empty state
+    await page.goto('/');
+    await page.context().storageState({ path: authFile });
+    return;
+  }
+
+  // Real auth path for when you need it...
+});</code></pre>
+
+        <div class="code-header"><span>e2e/mocks/profile-mock.ts</span><button class="copy-btn">Copy</button></div>
+<pre><code>// e2e/mocks/profile-mock.ts
+
+const TIER_DEFAULTS = {
+  free:    { generationLimit: 10,  features: ['basic-generation'] },
+  premium: { generationLimit: 500, features: ['basic-generation', 'advanced-generation', 'export'] },
+  trial:   { generationLimit: 40,  features: ['basic-generation', 'advanced-generation', 'export'] },
+};
+
+export async function mockProfile(page, tier, overrides?) {
+  const profile = buildProfile(tier, overrides);
+
+  await page.route('**/api/user/profile', async (route) =&gt; {
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify(profile),
+    });
+  });
+}</code></pre>
+
+        <div class="code-header"><span>e2e/tier-gates.spec.ts</span><button class="copy-btn">Copy</button></div>
+<pre><code>test('premium user sees export button', async ({ page }) => {
+  await mockProfile(page, 'premium');
+  await page.goto('/dashboard');
+  await expect(page.getByText('Export')).toBeVisible();
+});
+
+test('free user sees upgrade prompt', async ({ page }) => {
+  await mockProfile(page, 'free');
+  await page.goto('/dashboard');
+  await expect(page.getByText('Upgrade')).toBeVisible();
+});</code></pre>
+
+        <div class="callout warning">
+          <strong>Security</strong>
+          <p>Auth bypass must NEVER be active in production. Gate it behind an environment variable that's only set in test/dev environments. A common pattern: your middleware checks <code>process.env.E2E_BYPASS_AUTH === '1'</code> and only skips auth if it's set. In production, this env var doesn't exist, so auth always runs.</p>
+        </div>
+
+        <div class="callout">
+          <strong>In Practice</strong>
+          <p>Our first version used separate fixture files for each tier (<code>free-tier.json</code>, <code>premium-tier.json</code>). That meant updating N files when the profile schema changed. The inline defaults pattern shown above is simpler — one object to maintain, tier configs right where you can see them.</p>
+        </div>
+      </section>
+
+      <!-- Section 5 -->
+      <section id="visual-verification">
+        <h2><span class="section-num">5</span>Visual Verification</h2>
+
+        <p>Tests pass. Types check. Lint is clean. You open the browser and the layout is completely broken.</p>
+
+        <p>This happens more than you'd think with AI-generated code. The agent writes valid React/HTML/CSS that compiles and passes all programmatic checks, but renders incorrectly — overlapping elements, wrong spacing, invisible text on a same-colored background. Visual verification catches what assertions can't.</p>
+
+        <h3>Baseline Comparison</h3>
+
+        <p>Pixel-diff screenshots against saved baselines:</p>
+
+        <div class="code-header"><span>e2e/visual.spec.ts</span><button class="copy-btn">Copy</button></div>
+<pre><code>test('dashboard matches baseline', async ({ page }) => {
+  await page.goto('/dashboard');
+  await expect(page).toHaveScreenshot('dashboard.png', {
+    maxDiffPixelRatio: 0.01,  // Allow 1% pixel difference
+  });
+});</code></pre>
+
+        <p>First run creates the baseline. Subsequent runs compare against it. Differences beyond the threshold fail the test.</p>
+
+        <h3>Updating Baselines</h3>
+
+        <div class="code-header"><span>terminal</span><button class="copy-btn">Copy</button></div>
+<pre><code># When the UI intentionally changes, update baselines:
+npx playwright test --grep @visual --update-snapshots</code></pre>
+
+        <div class="callout tip">
+          <strong>Responsive breakpoints</strong>
+          <p>Test at multiple viewport sizes. A layout that works at 1920px can break at 768px. Playwright makes this easy — create separate projects in your config for desktop and mobile viewports.</p>
+        </div>
+
+        <div class="callout">
+          <strong>In Practice</strong>
+          <p>Visual baselines drift. Every intentional UI change requires a baseline update. If you're changing the UI frequently (early development), baselines create friction. Start with manual screenshot review (take screenshots, look at them) and add baseline comparison once the UI stabilizes.</p>
+        </div>
+      </section>
+
+      <!-- Section 6 -->
+      <section id="verify-loop">
+        <h2><span class="section-num">6</span>The Verify Loop</h2>
+
+        <p>If you take one pattern from this guide, make it this one.</p>
+
+        <p>The verify loop is the discipline of running build + test + lint before claiming work is done. It sounds obvious. It's not — because AI agents don't do it unless you force them to.</p>
+
+        <p>Agents are optimistic. They'll write code, see it compile, and report "done." They won't run the full test suite. They won't check the UI in a browser. They won't notice the lint warning about an unused import. The verify loop is the forcing function.</p>
+
+        <div class="code-header"><span>scripts/verify.sh</span><button class="copy-btn">Copy</button></div>
+<pre><code>#!/usr/bin/env bash
+# scripts/verify.sh
+
+run_check() {
+  local name="$1"; shift
+  printf "▶ %s\n" "$name"
+  if "$@" 2&gt;&amp;1; then
+    printf "✓ %s passed\n\n" "$name"
+  else
+    printf "✗ %s failed\n\n" "$name"
+    FAIL=$((FAIL + 1))
+  fi
+}
+
+# Uncomment checks for your stack:
+# run_check "TypeScript" npx tsc --noEmit
+# run_check "Lint" npm run lint
+# run_check "Build" npm run build
+run_check "Smoke Tests" npx playwright test --grep @smoke</code></pre>
+
+        <div class="code-header"><span>.claude/skills/verify.md</span><button class="copy-btn">Copy</button></div>
+<pre><code># .claude/skills/verify.md
+---
+name: verify
+description: Run build + test + lint before claiming done
+---
+
+## Steps
+1. Run `./scripts/verify.sh`
+2. If any check fails, fix the issue and re-run
+3. Do NOT claim work is complete until all checks pass</code></pre>
+
+        <div class="code-header"><span>terminal</span><button class="copy-btn">Copy</button></div>
+<pre><code># Install: cp .claude/hooks/pre-commit-verify.sh .git/hooks/pre-commit
+# Now every git commit runs the verify loop first</code></pre>
+
+        <div class="callout">
+          <strong>Why this is the highest-ROI pattern</strong>
+          <p>It's a cheap, fast gate that catches entire categories of bugs — broken builds, failing tests, lint violations — before they're committed. With agents, it's even more valuable because agents are prolific committers. Without the verify loop, a single agent session can introduce 5 broken commits before you notice.</p>
+        </div>
+      </section>
+
+      <!-- ═══ Sections 7-12 will be added below ═══ -->
+
+    </main>
+
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
