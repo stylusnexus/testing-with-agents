@@ -324,6 +324,11 @@ description: Run build + test + lint before claiming done
           <strong>Why this is the highest-ROI pattern</strong>
           <p>It's a cheap, fast gate that catches entire categories of bugs — broken builds, failing tests, lint violations — before they're committed. With agents, it's even more valuable because agents are prolific committers. Without the verify loop, a single agent session can introduce 5 broken commits before you notice.</p>
         </div>
+
+        <div class="callout tip">
+          <strong>Verify is half the gate. Code review is the other half.</strong>
+          <p>The verify loop catches mechanical failures (broken builds, failing tests). An AI code reviewer catches logical ones (bugs, security issues, convention violations). In the full pipeline from <a href="https://stylusnexus.github.io/shipping-with-agents/#skills">Shipping with Agents</a>, both are built-in steps: think &rarr; plan &rarr; build &rarr; <strong>verify</strong> &rarr; <strong>review</strong> &rarr; ship. Solo devs get review discipline without a team. The <a href="https://github.com/stylusnexus/full-starter">full starter</a> includes both.</p>
+        </div>
       </section>
 
       <!-- Section 7 -->
